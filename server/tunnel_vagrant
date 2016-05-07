@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-ssh -L 127.0.0.1:5433:127.0.0.1:5432 vagrant@localhost -p 2222 -N
+ssh -L 127.0.0.1:5433:127.0.0.1:5432 ptoldev -N
