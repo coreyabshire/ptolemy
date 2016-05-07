@@ -10,37 +10,56 @@ import common
 
 import numpy as np
 import psycopg2
+from geoalchemy2.shape import from_shape
+import models
+from shapely.geometry import Point
+import pandas as pd
 
 def main(places):
     valid_dispositions = ('known', 'unknown', 'tentative')
     try:
-        connection = psycopg2.connect("dbname='ptolemy' user='ptolemy' host='localhost' password='ptolemy' port='5433'")
+        #connection = psycopg2.connect("dbname='ptolemy' user='ptolemy' host='localhost' password='ptolemy' port='5433'")
+        session = models.create_session()
         print 'connected'
-        cursor = connection.cursor()
-        cursor.execute('''DELETE FROM places''')
-        query = '''INSERT INTO places (ptolemy_id, ptolemy_name, modern_name, ptolemy_point, modern_point, disposition) VALUES (%s, %s, %s, ST_GeogFromText(%s), ST_GeogFromText(%s), %s)'''
-        for index, place in places.iterrows():
+        #cursor = connection.cursor()
+        #cursor.execute('''DELETE FROM places''')
+        #query = '''INSERT INTO places (ptolemy_id, ptolemy_name, modern_name, ptolemy_point, modern_point, disposition) VALUES (%s, %s, %s, ST_GeogFromText(%s), ST_GeogFromText(%s), %s)'''
+        for index, row in places.iterrows():
+            print index
             try:
-                point_data = (place.ptol_lon, place.ptol_lat, place.modern_lon, place.modern_lat)
-                if any(np.isnan(x) for x in point_data):
-                    print 'not inserting: %s contains null point data %s' % (place.ptol_id, point_data)
-                elif place.disposition not in valid_dispositions:
-                    print 'not inserting: %s has invalid disposition %s' % (place.ptol_id, place.disposition)
+                place = session.query(models.Place).get(row.ptol_id)
+                if place == None:
+                    print 'inserting %s' % (row.ptol_id)
+                    place = models.Place()
+                    place.ptolemy_id = row.ptol_id
                 else:
-                    place_data = (
-                        place.ptol_id,
-                        place.ptol_name,
-                        place.modern_name,
-                        'POINT(%f %f)' % (place.ptol_lon, place.ptol_lat),
-                        'POINT(%f %f)' % (place.modern_lon, place.modern_lat),
-                        place.disposition)
-                    print 'inserting %s: %s' % (place.ptol_id, place_data)
-                    cursor.execute(query, place_data)
+                    print 'updating %s' % (row.ptol_id)
+
+                place.ptolemy_name = row.ptol_name
+                if isinstance(row.modern_name, basestring):
+                    place.modern_name = row.modern_name
+                else:
+                    place.modern_name = None
+                place.ptolemy_point = from_shape(Point(row.ptol_lon, row.ptol_lat))
+                if np.isnan(row.modern_lat) or np.isnan(row.modern_lon):
+                    place.modern_point = None
+                else:
+                    place.modern_point = from_shape(Point(row.modern_lon, row.modern_lat))
+                if row.disposition not in valid_dispositions:
+                    place.disposition = None
+                else:
+                    place.disposition = row.disposition
+
+                session.add(place)
+
+                #cursor.execute(query, place_data)
             except Exception as e:
-                print 'unable to insert %s: %s' % (place.ptol_id, e.message)
-        connection.commit()
-        cursor.close()
-        connection.close()
+                print 'unable to insert %s: %s' % (row.ptol_id, e.message)
+        #connection.commit()
+        #cursor.close()
+        #connection.close()
+        session.commit()
+        session.close()
     except Exception as e:
         print 'unable to connect: %s' % (e.message, )
 

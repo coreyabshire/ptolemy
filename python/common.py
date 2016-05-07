@@ -44,10 +44,12 @@ def read_places(id_starts_with):
     places = places.drop_duplicates('ptol_id')
     places = places.loc[:, KEY_PLACE_FIELDNAMES]
     places = places.loc[places.ptol_id.str.startswith(id_starts_with), :]
+    print len(places.ptol_id)
     places = pd.merge(places, geocode.read_geocodes(), how='left')
     places.loc[pd.notnull(places.modern_lat), 'disposition'] = 'known'
     places.loc[pd.isnull(places.modern_lat), 'disposition'] = 'unknown'
     places.set_index('ptol_id', False, False, True, True)
+    print len(places.ptol_id)
     return places
 
 
