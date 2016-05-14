@@ -56,11 +56,23 @@ def read_places(id_starts_with):
 def read_places_xlsx(filename):
     """Read a set of places from an Excel spreadsheet, formatted
     the way we've adopted during this project."""
-    places = pd.read_excel(filename, encoding='utf-8')
+    places = pd.read_excel(filename, 0, encoding='utf-8')
     places = places.iloc[:, 0:8]
     places.columns = ['ptol_id', 'ptol_name', 'modern_name',
                       'ptol_lat', 'ptol_lon', 'modern_lat', 'modern_lon',
                       'disposition']
+    places = places.drop_duplicates('ptol_id')
+    places.set_index('ptol_id', False, False, True, True)
+    return places
+
+
+def read_places_output_csv(filename):
+    """Read a set of places from the CSV the predictors write out
+    the way we've adopted during this project."""
+    places = pd.read_csv(filename, encoding="ISO-8859-1")
+    places = places.iloc[:, 0:8]
+    places.columns = ['ptol_id', 'ptol_name', 'modern_name', 'disposition',
+                      'ptol_lat', 'ptol_lon', 'modern_lat', 'modern_lon']
     places = places.drop_duplicates('ptol_id')
     places.set_index('ptol_id', False, False, True, True)
     return places

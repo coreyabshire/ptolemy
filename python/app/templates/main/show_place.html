@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block body %}
+<h2>{{ place.ptolemy_name }}</h2>
+<ul class="form-style-1">
+    <li><label>Ptolemy ID</label>{{ place.ptolemy_id }}</li>
+    <li><label>Ptolemy Name</label>{{ place.ptolemy_name }}</li>
+    <li><label>Modern Name</label>{{ place.modern_name }}</li>
+    <li><label>Ptolemy Coordinates</label>{{ place.ptolemy_coords.y }} {{ place.ptolemy_coords.x }}</li>
+    {% if place.modern_coords %}
+    <li><label>Modern Coordinates</label>{{ place.modern_coords.y }} {{ place.modern_coords.x }}</li>
+    {% else %}
+    <li><label>Modern Coordinates</label>unknown</li>
+    {% endif %}
+    <li><label>Disposition</label>{{ place.disposition }}</li>
+    <li><label>Project</label><a href="/projects/{{ place.region.project.slug }}">{{ place.region.project.name }}</a></li>
+    <li><label>Region</label><a href="/projects/{{ place.region.project.slug }}/regions/{{ place.region.slug }}">{{ place.region.name }}</a></li>
+</ul>
+<p><a href="{{ place.ptolemy_id }}/edit">Edit this place</a></p>
+{% if place.modern_coords %}
+<iframe src="https://www.google.com/maps/embed/v1/place?q={{ place.modern_coords.y }} {{ place.modern_coords.x }}
+      &zoom=5
+      &key=AIzaSyAzB0EAjvNnaAy-XX7oQfVs9UAwPZHDD_E" width="500" height="300">
+</iframe>
+{% endif %}
+{% endblock %}

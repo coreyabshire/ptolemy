@@ -15,16 +15,17 @@ import models
 from shapely.geometry import Point
 import pandas as pd
 
-def main(dburl, places):
+def main(places):
     valid_dispositions = ('known', 'unknown', 'tentative')
     try:
         #connection = psycopg2.connect("dbname='ptolemy' user='ptolemy' host='localhost' password='ptolemy' port='5433'")
-        session = models.create_session(dburl)
+        session = models.create_session()
         print 'connected'
         #cursor = connection.cursor()
         #cursor.execute('''DELETE FROM places''')
         #query = '''INSERT INTO places (ptolemy_id, ptolemy_name, modern_name, ptolemy_point, modern_point, disposition) VALUES (%s, %s, %s, ST_GeogFromText(%s), ST_GeogFromText(%s), %s)'''
         for index, row in places.iterrows():
+            print index
             try:
                 place = session.query(models.Place).get(row.ptol_id)
                 if place == None:
@@ -67,23 +68,17 @@ if __name__ == '__main__':
             description='Load Ptolemy places to database.')
     parser.add_argument('--sgdb', help='read from sgdb with given prefix')
     parser.add_argument('--xlsx', help='xlsx to read from instead of sgdb')
-    parser.add_argument('--ocsv', help='prediction output csv to read from')
-    parser.add_argument('--dburl', help='url of the database to use')
 
     args = parser.parse_args()
-
-    if not args.dburl:
-        sys.stderr.write('must specify dburl\n')
-        exit(1)
 
     if args.sgdb:
         places = common.read_places(args.sgdb)
     elif args.xlsx:
         places = common.read_places_xlsx(args.xlsx)
-    elif args.ocsv:
-        places = common.read_places_output_csv(args.ocsv)
     else:
-        sys.stderr.write('must specify one of --sgdb or --xlsx or --ocsv\n')
+        sys.stderr.write('must specify one of --sgdb or --xlsx')
         exit(1)
 
-    main(args.dburl, places)
+    places = common.read_places_output_csv(args.csv)
+
+    #main(places)

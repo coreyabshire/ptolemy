@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block body %}
+<h2>{{ project.name }}</h2>
+<ul>
+  <li>Project ID: {{ project.id }}</li>
+  <li>Project Name: {{ project.name }}</li>
+  <li>Project Slug: {{ project.slug }}</li>
+</ul>
+<h2>Regions</h2>
+<ul>
+    {% for region in project.regions %}
+    <li><a href="/regions/{{ region.slug }}">{{ region.name }}</a></li>
+    {% else %}
+    <li><em>Unbelievable.  No regions here so far</em></li>
+    {% endfor %}
+</ul>
+{% endblock %}

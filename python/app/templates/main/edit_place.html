@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block body %}
+<h2>{{ place.ptolemy_name }}</h2>
+<form action="save" method="POST">
+<ul class="form-style-1">
+    <li>
+        <label>Ptolemy ID</label>
+        {{ place.ptolemy_id }}
+    </li>
+
+    <li>
+        <label>Ptolemy Name</label>
+        <input name="ptolemy_name" type="text" value="{{ place.ptolemy_name }}" />
+    </li>
+
+    <li>
+        <label>Modern Name</label>
+        <input name="modern_name" type="text" value="{{ place.modern_name }}" />
+    </li>
+
+    <li>
+        <label>Ptolemy Coordinates</label>
+        <input name="ptolemy_coords" type="text" value="{{ place.ptolemy_coords.y }} {{ place.ptolemy_coords.x }}" />
+    </li>
+
+    <li>
+        <label>Modern Coordinates</label>
+        {% if place.modern_coords %}
+        <input name="modern_coords" type="text" value="{{ place.modern_coords.y }} {{ place.modern_coords.x }}" />
+        {% else %}
+        <input name="modern_coords" type="text" value="" />
+        {% endif %}
+    </li>
+
+    <li>
+        <label>Disposition</label>
+        <input name="disposition" type="radio" value="unknown" {% if place.disposition == 'unknown' %}checked{% endif %}>unknown
+        <input name="disposition" type="radio" value="tentative" {% if place.disposition == 'tentative' %}checked{% endif %}>tentative
+        <input name="disposition" type="radio" value="known" {% if place.disposition == 'known' %}checked{% endif %}>known
+    </li>
+
+    <li>
+        <input name="submit" type="submit" value="Submit"/>
+        <input name="submit" type="submit" value="Cancel"/>
+    </li>
+</ul>
+</form>
+{% endblock %}

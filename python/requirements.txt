@@ -1,0 +1,15 @@
+numpy
+scipy
+sklearn
+matplotlib
+pandas
+simplekml
+sqlalchemy
+psycopg2
+geopy
+shapely
+geoalchemy2
+mpltoolkits.basemap
+flask
+flask-wtf
+flask-sqlalchemy

@@ -22,7 +22,11 @@ Vagrant.configure(2) do |config|
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
-  # config.vm.network "forwarded_port", guest: 80, host: 8080
+  # We're not forwarding 5432 (postgres) here because we're not accessing
+  # it that way in production. Rather, we'll just SSH tunnel to it just like
+  # we do in production.
+  config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.network "forwarded_port", guest: 5000, host: 5000
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
@@ -57,6 +61,9 @@ Vagrant.configure(2) do |config|
     vb.name = "ptolemy"
   end
   
+  public_key_path = File.join(Dir.home, ".ssh", "id_rsa.pub")
+  public_key = IO.read(public_key_path)
+  
   # View the documentation for the provider you are using for more
   # information on available options.
 
@@ -71,14 +78,46 @@ Vagrant.configure(2) do |config|
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
-    sudo apt-get update
+    sudo apt-get update # tried getting by without this as it can be slow but starting getting errors
+    sudo apt-get install -y build-essential
     sudo apt-get install -y apache2
     sudo apt-get install -y postgresql
     sudo apt-get install -y postgresql-contrib
     sudo apt-get install -y postgis 
     sudo apt-get install -y postgresql-9.3-postgis-2.1
-    # TODO: migrate the rest of the DB provisioning to here
-    # TODO: create the claudiusptolemy user
+    sudo apt-get install -y python-dev
+    sudo apt-get install -y libfreetype6-dev
+    sudo apt-get install -y libpng-dev
+    sudo apt-get install -y python-pip
+    sudo apt-get install -y python-virtualenv
+    sudo apt-get install -y python-numpy
+    sudo apt-get install -y python-scipy
+    sudo apt-get install -y python-matplotlib
+    sudo apt-get install -y python-sklearn
+    sudo apt-get install -y python-xlrd
+    sudo apt-get install -y python-pandas
+    sudo apt-get install -y python-psycopg2
+    sudo apt-get install -y python-sqlalchemy
+    sudo apt-get install -y python-geopy
+    sudo apt-get install -y python-shapely
+    sudo apt-get install -y python-mpltoolkits.basemap
+    sudo apt-get install -y python-flask
+    sudo apt-get install -y python-flask-sqlalchemy
+    sudo apt-get install -y python-flaskext.wtf
+    sudo apt-get install -y python-jinja2
+    sudo apt-get install -y ipython
+    sudo pip install geoalchemy2
+    sudo sh -c "echo '#{public_key}' >> /home/vagrant/.ssh/authorized_keys"
+    sudo adduser --disabled-password --gecos "" claudiusptolemy
+    sudo adduser claudiusptolemy sudo
+    sudo mkdir /home/claudiusptolemy/.ssh -m 0700
+    sudo chown claudiusptolemy:claudiusptolemy /home/claudiusptolemy/.ssh
+    sudo sh -c "echo '#{public_key}' > /home/claudiusptolemy/.ssh/authorized_keys"
+    sudo chmod 0600 /home/claudiusptolemy/.ssh/authorized_keys
+    sudo chown claudiusptolemy:claudiusptolemy /home/claudiusptolemy/.ssh/authorized_keys
+    sudo sh -c "echo 'claudiusptolemy ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/claudiusptolemy"
+    /vagrant/db/setup_db.sh
+    sudo -u claudiusptolemy psql -f /vagrant/db/create_places_table.sql
   SHELL
 
 end
